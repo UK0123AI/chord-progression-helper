@@ -1,36 +1,34 @@
 import {
   MAJOR_CHORD_QUALITIES,
-  MAJOR_SCALE_INTERVALS,
-  NOTES,
+  MAJOR_SCALES,
 } from "../data/music";
 
-import type { Chord, Note } from "../types/music";
+import type {
+  Chord,
+  MajorKey,
+  Note,
+} from "../types/music";
 
 /**
- * 指定した音を基準に、メジャースケールの7音を作る。
+ * 指定したキーからメジャースケールの7音を取得する。
  *
  * 例：
- * getMajorScale("C")
- * → ["C", "D", "E", "F", "G", "A", "B"]
+ * getMajorScale("F")
+ * → ["F", "G", "A", "Bb", "C", "D", "E"]
  */
-export const getMajorScale = (key: Note): Note[] => {
-  const keyIndex = NOTES.indexOf(key);
-
-  return MAJOR_SCALE_INTERVALS.map((interval) => {
-    const noteIndex = (keyIndex + interval) % NOTES.length;
-
-    return NOTES[noteIndex];
-  });
+export const getMajorScale = (key: MajorKey): Note[] => {
+  return MAJOR_SCALES[key];
 };
 
 /**
- * 指定したメジャーキーから、7つのダイアトニックコードを作る。
+ * 指定したメジャーキーから、
+ * 7つのダイアトニックコードを作る。
  *
  * 例：
  * getDiatonicChords("C")
  * → C, Dm, Em, F, G, Am, Bdim
  */
-export const getDiatonicChords = (key: Note): Chord[] => {
+export const getDiatonicChords = (key: MajorKey): Chord[] => {
   const scale = getMajorScale(key);
 
   return scale.map((root, degreeIndex) => {
