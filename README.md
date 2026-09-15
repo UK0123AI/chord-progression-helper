@@ -1,75 +1,219 @@
-# React + TypeScript + Vite
+# Chord Progression Helper
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+コード進行の仕組みを理解しながら、別のキーへ簡単に移調できるWebアプリケーションです。
 
-Currently, two official plugins are available:
+コード進行を選択すると、その進行の**度数（Degree）**を表示し、同じ役割を保ったまま別のキーへ変換できます。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 制作背景
 
-## React Compiler
+音楽理論を学ぶ中で、各キーで使用できるコード自体は検索すれば簡単に調べられる一方、
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- このコード進行は何度進行なのか
+- 別のキーに変更すると、どのコードになるのか
+- キーが変わってもコードの役割はどう対応するのか
 
-## Expanding the ESLint configuration
+といったことを、その都度考えたり調べたりする必要がありました。
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+そこで、コード進行を選択するだけで**度数の確認と別キーへの移調を同時に行えるツール**を制作しました。
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+ギターやピアノの練習、作曲の学習だけでなく、歌いやすいキーへ変更したい場合などにも利用できることを想定しています。
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 主な機能
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- メジャーキーの選択
+- ダイアトニックコードの表示
+- コードを選択してコード進行を作成
+- コード進行の度数表示
+- 別キーへのコード進行の移調
+- Undoによる直前のコード削除
+- Clearによるコード進行のリセット
+- C# / Db、F# / Gbなどの異名同音の表記に対応
+- 一般的に使用されるキー表記の案内
+- PC / スマートフォンに対応したレスポンシブデザイン
 
+## 使い方
+
+1. `Original Key` から元のキーを選択します。
+2. `Chord Selector` からコードを順番に選択します。
+3. 選択したコード進行と、その度数が表示されます。
+4. `Transpose To` から移調先のキーを選択します。
+5. 同じ度数関係を保ったコード進行が `Transposed Result` に表示されます。
+
+### 例
+
+C Majorで以下のコード進行を選択した場合、
+
+```text
+C → G → Am → F
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+度数は、
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```text
+I → V → vi → IV
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+となります。
 
+これをD Majorへ移調すると、
+
+```text
+D → A → Bm → G
+```
+
+として表示されます。
+
+## 使用技術
+
+- React
+- TypeScript
+- Vite
+- CSS
+- ESLint
+
+### Viteを採用した理由
+
+今回のアプリケーションは単一画面で完結し、SSRやサーバーサイド処理、API通信を必要としません。
+
+そのため、必要以上に構成を複雑にせず、React + TypeScriptのクライアントサイドアプリケーションをシンプルに構築できるViteを採用しました。
+
+## 設計上の工夫
+
+### コード名ではなく度数を状態として保持
+
+コード進行は、`C` や `G` といったコード名そのものではなく、キーの中で何番目のコードなのかを表す `degreeIndex` として保持しています。
+
+例えば、
+
+```text
+C → G → Am → F
+```
+
+というコード進行は、内部では以下のように扱います。
+
+```ts
+[0, 4, 5, 3]
+```
+
+この値をD Majorのダイアトニックコードへ適用すると、
+
+```text
+D → A → Bm → G
+```
+
+となります。
+
+コード名ではなく「キーの中での役割」を保持することで、キーが変更されても同じコード進行の関係を保ったまま変換できるようにしました。
+
+### キーに応じた自然な音名を使用
+
+同じ高さの音でも、音楽理論上はキーによって適切な表記が異なります。
+
+例えばF Majorでは、
+
+```text
+F G A Bb C D E
+```
+
+となるため、`A#` ではなく `Bb` として扱います。
+
+また、
+
+```text
+C# Major / Db Major
+F# Major / Gb Major
+```
+
+のような異名同音のキーも選択できるようにし、それぞれのキーに合った音名でコードを生成しています。
+
+初心者でも選択しやすいよう、一般的によく使用される表記についてもUI上で案内しています。
+
+### コンポーネントの責務を分離
+
+画面全体で使用する状態は `App` で管理し、UIは機能単位でコンポーネントへ分離しています。
+
+```text
+App
+├── KeySelector
+├── ChordSelector
+├── ProgressionDisplay
+└── TransposedResult
+```
+
+`App` はキーやコード進行などの状態管理と画面全体の構成を担当し、各コンポーネントはそれぞれの表示・操作を担当します。
+
+一方で、小さな要素まで機械的にコンポーネント化すると構成が複雑になるため、責務や再利用性を考えながら分割しています。
+
+### UI表示文言をロジックから分離
+
+画面上に表示する説明文などは `uiText.ts` にまとめています。
+
+小規模なアプリケーションのためi18nライブラリは導入せず、必要な表示文言のみを定数として管理することで、UIロジックと表示文言を分離しています。
+
+## ディレクトリ構成
+
+```text
+src/
+├── components/
+│   ├── ChordSelector.tsx
+│   ├── KeySelector.tsx
+│   ├── ProgressionDisplay.tsx
+│   └── TransposedResult.tsx
+├── data/
+│   ├── music.ts
+│   └── uiText.ts
+├── types/
+│   └── music.ts
+├── utils/
+│   └── musicTheory.ts
+├── App.tsx
+├── App.css
+├── index.css
+└── main.tsx
+```
+
+## 今後追加したい機能
+
+現在は、基本的なコード進行と移調の理解に集中できるよう、メジャーキーのダイアトニックコードに機能を絞っています。
+
+今後は以下のような機能を検討しています。
+
+- Minor Keyへの対応
+- 7th / maj7 / sus / add9などのコードへの対応
+- コードの音声再生
+- コード進行の保存
+- 音楽理論を学べるクイズ機能
+- キーボード操作・アクセシビリティの改善
+
+## ローカルでの起動方法
+
+### 1. リポジトリをクローン
+
+```bash
+git clone git@github.com:UK0123AI/chord-progression-helper.git
+```
+
+### 2. ディレクトリへ移動
+
+```bash
+cd chord-progression-helper
+```
+
+### 3. パッケージをインストール
+
+```bash
+npm install
+```
+
+### 4. 開発サーバーを起動
+
+```bash
+npm run dev
+```
+
+### チェック
+
+```bash
+npm run lint
+npm run build
 ```
