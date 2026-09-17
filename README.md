@@ -4,6 +4,10 @@
 
 コード進行を選択すると、その進行の**度数（Degree）**を表示し、同じ役割を保ったまま別のキーへ変換できます。
 
+## Live Demo
+
+[Chord Progression Helperを試す](https://chord-progression-helper-blush.vercel.app/)
+
 ## Demo
 
 ![Chord Progression Helper Demo](./docs/demo.gif)
@@ -74,6 +78,7 @@ D → A → Bm → G
 - Vite
 - CSS
 - ESLint
+- Vercel
 
 ### Viteを採用した理由
 
@@ -221,3 +226,11 @@ npm run dev
 npm run lint
 npm run build
 ```
+
+## デプロイ
+
+Vercelを利用して公開しています。
+
+`main` ブランチをProduction環境に接続し、GitHubへの変更を反映できる構成にしています。
+
+[Chord Progression Helperを開く](https://chord-progression-helper-blush.vercel.app/)
